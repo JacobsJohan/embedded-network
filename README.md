@@ -11,4 +11,8 @@ will be displayed graphically using a Qt C++ application.
 * The hardware (temperature sensor, buzzer, jumper cables, breadboards) has been ordered.
 
 ## Goal for today
-* Create a Qt C++ GUI application
+* 2020-04-08: Create a Qt C++ GUI application: done
+* 2020-04-09: Update graph axes on new data point. Send data from Pi to laptop and display on graph
+
+## Ideas
+* Use ZMQ PUB/SUB to send temperature from the raspberry pi to the laptop

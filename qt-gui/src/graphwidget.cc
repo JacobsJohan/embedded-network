@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstdlib>
 
 #include <QtWidgets>
@@ -34,7 +35,6 @@ GraphWidget::GraphWidget(QWidget *parent) :
         // Create ChartView such that we don't need a QGraphicsView scene
         chartView = new QtCharts::QChartView(chart);
         chartView->setRenderHint(QPainter::Antialiasing);
-
 }
 
 // Destructor
@@ -67,4 +67,19 @@ void GraphWidget::addGraphData()
                 rand_int = rand() % 10;
                 series_random->append(i, rand_int);
         }
+}
+
+int GraphWidget::addPointPeriodic(const int time_ms, std::atomic<bool>& running)
+{
+        int rand_int = 0;
+        int data_len = 0;
+
+        while (running) {
+                rand_int = rand() % 10;
+                data_len = series_random->count();
+                series_random->append(data_len, rand_int);
+                std::this_thread::sleep_for(std::chrono::milliseconds(time_ms));
+        }
+
+        return 0;
 }

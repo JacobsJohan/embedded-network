@@ -10,29 +10,30 @@
 MainWidget::MainWidget(QWidget *parent) :
         QWidget(parent)
 {
-        button_ = new QPushButton(tr("Push Me!"));
-        textBrowser_ = new QTextBrowser();
+        button_exit = new QPushButton(tr("Exit"));
+        //textBrowser_ = new QTextBrowser();
         graph = new GraphWidget();
 
         QGridLayout *mainLayout = new QGridLayout;
-        mainLayout->addWidget(button_, 0, 0);
+        mainLayout->addWidget(button_exit, 0, 0);
         mainLayout->addWidget(graph->chartView, 1, 0);
         setLayout(mainLayout);
         setWindowTitle(tr("Qt GUI app"));
 
         // Connect the button's released signal to the MainWidget's onButtonReleased method.
         //connect(&process_, SIGNAL(readyReadStandardOutput()), this, SLOT(onCaptureProcessOutput()));
-        connect(button_, SIGNAL(released()), graph, SLOT(onButtonReleased()));
+        connect(button_exit, SIGNAL(released()), this, SLOT(close()));
 }
 
 // Destructor
 MainWidget::~MainWidget()
 {
-        delete button_;
-        delete textBrowser_;
+        delete button_exit;
+        //delete textBrowser_;
         delete graph;
 }
 
+/* Legacy
 // Handler for the button press
 void MainWidget::onButtonReleased()
 {
@@ -59,4 +60,4 @@ void MainWidget::onCaptureProcessOutput()
         if (process)
                 textBrowser_->append(process->readAllStandardOutput());
 }
-
+*/

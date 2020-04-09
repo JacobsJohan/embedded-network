@@ -19,15 +19,16 @@ public:
         explicit MainWidget(QWidget *parent = nullptr); //Constructor
         ~MainWidget(); // Destructor
 
+        // graph must be public to be able to add points from main
+        GraphWidget *graph;
+
 private slots:
-        void onButtonReleased(); // Handler for button presses
-        void onCaptureProcessOutput(); // Handler for process output
+        //void onCaptureProcessOutput(); // Handler for process output
 
 private:
-        QPushButton* button_;
-        QTextBrowser* textBrowser_;
-        QProcess process_; // Run a process after pressing the button
-        GraphWidget *graph;
+        QPushButton* button_exit;
+        //QTextBrowser* textBrowser_;
+        //QProcess process_; // Run a process after pressing the button
 };
 
 #endif /* MAINWIDGET_H */

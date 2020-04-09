@@ -1,5 +1,6 @@
 #ifndef GRAPHWIDGET_H
 #define GRAPHWIDGET_H
+#include <atomic>
 
 #include <QChart>
 #include <QChartView>
@@ -16,6 +17,8 @@ public:
         explicit GraphWidget(QWidget *parent = nullptr); // Constructor
         ~GraphWidget(); // Destructor
         QtCharts::QChartView *chartView;
+
+        int addPointPeriodic(const int time_ms, std::atomic<bool>& running);
 
 public slots:
         void onButtonReleased(void);
