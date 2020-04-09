@@ -14,14 +14,11 @@ class GraphWidget : public QWidget
         Q_OBJECT
 
 public:
-        explicit GraphWidget(QWidget *parent = nullptr); // Constructor
-        ~GraphWidget(); // Destructor
+        explicit GraphWidget(QWidget *parent = nullptr);        // Constructor
+        ~GraphWidget();                                         // Destructor
         QtCharts::QChartView *chartView;
 
         int addPointPeriodic(const int time_ms, std::atomic<bool>& running);
-
-public slots:
-        void onButtonReleased(void);
 
 private:
         QtCharts::QLineSeries *series_random;
@@ -29,8 +26,10 @@ private:
         QtCharts::QValueAxis *axisX;
         QtCharts::QValueAxis *axisY;
 
-        // Functions
-        void addGraphData();
+        int axisXMin;
+        int axisXMax;
+        int axisYMin;
+        int axisYMax;
 };
 
 #endif /* GRAPHWIDGET_H */
