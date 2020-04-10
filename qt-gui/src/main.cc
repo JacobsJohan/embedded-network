@@ -9,12 +9,13 @@
 #include "graphwidget.h"
 #include "mainwidget.h"
 
+std::atomic<GraphState> graphState;
 
 int main(int argc, char *argv[])
 {
         int ret { 0 };
         const int time_ms { 1000 };
-        std::atomic<bool> running { true };
+        graphState = GraphState::idle;
 
         // Creates an instance of QApplication
         QApplication a(argc, argv);
@@ -29,13 +30,13 @@ int main(int argc, char *argv[])
         // Run function asynchronously and return a std::future that will eventually hold the result of the function call
         // std::launch::async ensures that a new thread is launched to execute the task
         std::future<int> f_int = std::async(std::launch::async, &GraphWidget::addPointPeriodic, \
-                                            graph, time_ms, std::ref(running));
+                                            graph, time_ms, std::ref(graphState));
 
         // run the application and return execs() return value/code
         ret = a.exec();
 
         // Notify thread(s) that the GUI has stopped
-        running = false;
+        graphState = GraphState::terminating;
 
         // Block until thread has returned
         if (f_int.get())

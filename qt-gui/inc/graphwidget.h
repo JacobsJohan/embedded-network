@@ -8,6 +8,14 @@
 #include <QValueAxis>
 #include <QWidget>
 
+enum class GraphState {
+        idle,
+        running,
+        terminating
+};
+
+extern std::atomic<GraphState> graphState;
+
 // Class for our graph widget
 class GraphWidget : public QWidget
 {
@@ -18,7 +26,10 @@ public:
         ~GraphWidget();                                         // Destructor
         QtCharts::QChartView *chartView;
 
-        int addPointPeriodic(const int time_ms, std::atomic<bool>& running);
+        int addPointPeriodic(const int time_ms, std::atomic<GraphState>& state);
+
+public slots:
+        void toggleGraphState(void);
 
 private:
         QtCharts::QLineSeries *series_random;

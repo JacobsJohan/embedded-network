@@ -1,7 +1,13 @@
 #include <chrono>
 #include <cstdlib>
+#include <iostream>
+#include <string>
 
 #include <QtWidgets>
+
+extern "C" {
+#include <zmq_connection.h>
+}
 
 #include <graphwidget.h>
 
@@ -15,7 +21,7 @@ GraphWidget::GraphWidget(QWidget *parent) :
         axisXMin = 0;
         axisXMax = 30;
         axisYMin = 0;
-        axisYMax = 9;
+        axisYMax = 30;
 
         // Create a series of random data points
         series_random = new QtCharts::QLineSeries();
@@ -55,30 +61,77 @@ GraphWidget::~GraphWidget()
         delete chartView;
 }
 
+
+
 // Periodically add data points to the graph as long as the Qt app is running
-int GraphWidget::addPointPeriodic(const int time_ms, std::atomic<bool>& running)
+int GraphWidget::addPointPeriodic(const int time_ms, std::atomic<GraphState>& state)
 {
-        int rand_int = 0;
+        int ret = 0;
+        float temp = 0;
         int data_len = 0;
+        int port = 5555;
+        std::string ip = "raspberrypi.local";
+        void *zctx = NULL;
+        void *zsock = NULL;
 
-        while (running) {
-                rand_int = rand() % 10;
-                data_len = series_random->count();
-                series_random->append(data_len, rand_int);
+        // Check if we are shutting down
+        while (state != GraphState::terminating) {
+                // Open client side socket
+                ret = init_req_sock(&zctx, &zsock, ip.c_str(), port);
+                if (ret < 0) {
+                        std::cout << "Error initializing request socket" << std::endl;
+                        return -1;
+                }
 
-                if (data_len > axisXMax) {
-                        // Delete first point
-                        series_random->remove(0);
+                // Check if we are idle/running
+                if (state == GraphState::running) {
+                        ret = request_temp(zsock, &temp);
+                        if (ret < 0) {
+                                std::cout << "Error requesting temperature" << std::endl;
+                                return -1;
+                        }
 
-                        // Shift x-values of all other points
-                        for (int k = 0; k < data_len; k++) {
-                                series_random->replace(k, k, series_random->at(k).y());
+                        data_len = series_random->count();
+                        series_random->append(data_len, temp);
+
+                        if (data_len > axisXMax) {
+                                // Delete first point
+                                series_random->remove(0);
+
+                                // Shift x-values of all other points
+                                for (int k = 0; k < data_len; k++) {
+                                        series_random->replace(k, k, series_random->at(k).y());
+                                }
                         }
                 }
 
                 std::this_thread::sleep_for(std::chrono::milliseconds(time_ms));
         }
 
-        return 0;
+        ret = close_sock(zsock);
+        if (ret < 0) {
+                std::cout << "Error closing socket" << std::endl;
+        }
+
+        return ret;
 }
 
+/*************************** Public slots ******************************/
+
+// Change graphState from idle to running or vice versa
+void GraphWidget::toggleGraphState(void)
+{
+        switch (graphState) {
+        case GraphState::idle:
+                // Swap to running
+                graphState = GraphState::running;
+                break;
+        case GraphState::running:
+                // Swap to idle
+                graphState = GraphState::idle;
+                break;
+        default:
+                graphState = GraphState::terminating;
+                std::cout << "Error toggling graph state" << std::endl;
+        }
+}

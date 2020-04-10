@@ -10,23 +10,27 @@
 MainWidget::MainWidget(QWidget *parent) :
         QWidget(parent)
 {
-        button_exit = new QPushButton(tr("Exit"));
+        buttonExit = new QPushButton(tr("Exit"));
+        buttonChangeState = new QPushButton(tr("Start/stop measuring"));
         graph = new GraphWidget();
 
         QGridLayout *mainLayout = new QGridLayout;
-        mainLayout->addWidget(button_exit, 0, 0);
-        mainLayout->addWidget(graph->chartView, 1, 0);
+        mainLayout->addWidget(buttonChangeState, 0, 0);
+        mainLayout->addWidget(buttonExit, 1, 0);
+        mainLayout->addWidget(graph->chartView, 2, 0);
         setLayout(mainLayout);
         setWindowTitle(tr("Qt GUI app"));
 
         // Connect the button's released signal to the MainWidget's onButtonReleased method.
-        connect(button_exit, SIGNAL(released()), this, SLOT(close()));
+        connect(buttonExit, SIGNAL(released()), this, SLOT(close()));
+        connect(buttonChangeState, SIGNAL(released()), graph, SLOT(toggleGraphState()));
 }
 
 // Destructor
 MainWidget::~MainWidget()
 {
-        delete button_exit;
+        delete buttonExit;
+        delete buttonChangeState;
         delete graph;
 }
 

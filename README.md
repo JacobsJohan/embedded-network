@@ -12,7 +12,7 @@ will be displayed graphically using a Qt C++ application.
 
 ## Goal for today
 * 2020-04-08: Create a Qt C++ GUI application: done
-* 2020-04-09: Update graph axes on new data point. Send data from Pi to laptop and display on graph
+* 2020-04-09: Update graph axes on new data point. Send data from Pi to laptop and display on graph.
+* 2020-04-10: Integrate ZMQ REQ/REP into main C++ program. Hope that hardware arrives.
+    * Create start/stop measuring button.
 
-## Ideas
-* Use ZMQ PUB/SUB to send temperature from the raspberry pi to the laptop

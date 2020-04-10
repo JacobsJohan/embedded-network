@@ -1,7 +1,6 @@
 #ifndef MAINWIDGET_H
 #define MAINWIDGET_H
 
-#include <QProcess>
 #include <QWidget>
 
 class QPushButton;
@@ -21,7 +20,8 @@ public:
         GraphWidget *graph;
 
 private:
-        QPushButton* button_exit;
+        QPushButton* buttonExit;
+        QPushButton* buttonChangeState;
 };
 
 #endif /* MAINWIDGET_H */

@@ -5,6 +5,7 @@
 TEMPLATE = app
 TARGET = qt-gui
 INCLUDEPATH += . inc
+LIBS += -lzmq
 
 QT += widgets charts
 
@@ -20,6 +21,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 # Input
-HEADERS += inc/mainwidget.h inc/graphwidget.h
-SOURCES += src/main.cc src/mainwidget.cc src/graphwidget.cc
+HEADERS += \
+    inc/mainwidget.h \
+    inc/graphwidget.h \
+    inc/zmq_connection.h \
+
+SOURCES += \
+    src/main.cc \
+    src/mainwidget.cc \
+    src/graphwidget.cc \
+    src/zmq_connection.c \
 
