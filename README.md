@@ -15,4 +15,16 @@ will be displayed graphically using a Qt C++ application.
 * 2020-04-09: Update graph axes on new data point. Send data from Pi to laptop and display on graph.
 * 2020-04-10: Integrate ZMQ REQ/REP into main C++ program. Hope that hardware arrives.
     * Create start/stop measuring button.
+* 2020-04-11: Configure Buildroot to build a bootable RPI4 image.
+* 2020-04-13: Test I2C on the RPI4
+* 2020-04-14: Use Bosch BMP280 API to read out temperature.
 
+## Configuring I2C on the RPI4
+* Toggle *dtparam=i2c_arm=on* in ```/boot/config```. This can also be changed with **raspi-config**.
+
+## ioctl() explained
+[Detailed information](https://sysplay.github.io/books/LinuxDrivers/book/Content/Part09.html)
+
+ioctl() is a Linux system call that stands for Input Output Control and is used for controlling hardware peripherals. It
+is for example used to control the volume of an audio device, for the configuration of a video device or for reading out
+device registers.
