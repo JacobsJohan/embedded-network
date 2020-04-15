@@ -1,3 +1,6 @@
+#ifndef I2C_DRV_H
+#define I2C_DRV_H
+
 #include <stdint.h>
 
 /*********************************** Public functions ***********************************/
@@ -33,3 +36,5 @@ int8_t i2c_reg_write(uint8_t i2c_addr, uint8_t reg_addr, uint8_t *reg_data, uint
  * @return: 0 on success, -1 on failure.
  */
 int8_t i2c_reg_read(uint8_t i2c_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t length);
+
+#endif /* I2C_DRV_H */

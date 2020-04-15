@@ -4,7 +4,7 @@
 
 ifndef INDOCKER
 BRDOCK=@docker run --rm -it -e INDOCKER=1\
-       -v=$(abspath $(BRBUILDDIR)):/v/build \
+       -v=$(abspath $(BUILDDIR)):/v/build \
        -v=$(abspath $(BRCACHEDIR)):/root/.buildroot-ccache \
        -v=$(abspath $(BRDLDIR)):/buildroot/dl \
        -v=$(abspath $(CURRENTDIR)):/pwd \

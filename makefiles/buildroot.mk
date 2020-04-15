@@ -22,6 +22,13 @@ br-build: br-setup
 	$(BRDOCK) 'source setup-build.sh -e $$PWD/buildroot -d /v/$(BRBUILDDIR) $(BRDEFCONFIG) && $$BRMAKE'
 
 
+# Clean the entire buildroot tree (use with care)
+.PHONY: br-clean
+br-clean:
+	$(info Cleaning buildroot directory...)
+	$(BRDOCK) 'source setup-build.sh -e $$PWD/buildroot -d /v/$(BRBUILDDIR) $(BRDEFCONFIG) && \
+		make clean > /dev/null'
+
 
 # Create the dowload and cache directories on the host if they do not exist yet
 .PHONY: br-setup

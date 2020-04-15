@@ -1,4 +1,5 @@
 #include <chrono>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -20,8 +21,8 @@ GraphWidget::GraphWidget(QWidget *parent) :
         // Set initial axis sizes
         axisXMin = 0;
         axisXMax = 30;
-        axisYMin = 0;
-        axisYMax = 30;
+        axisYMin = 24;
+        axisYMax = 26;
 
         // Create a series of random data points
         series_random = new QtCharts::QLineSeries();
@@ -91,6 +92,8 @@ int GraphWidget::addPointPeriodic(const int time_ms, std::atomic<GraphState>& st
                                 return -1;
                         }
 
+                        // Print temperature
+                        std::cout << "T: " << temp << " C" << std::endl;
                         data_len = series_random->count();
                         series_random->append(data_len, temp);
 
@@ -102,6 +105,14 @@ int GraphWidget::addPointPeriodic(const int time_ms, std::atomic<GraphState>& st
                                 for (int k = 0; k < data_len; k++) {
                                         series_random->replace(k, k, series_random->at(k).y());
                                 }
+                        }
+
+                        if (ceil(temp) > axisYMax) {
+                                axisYMax = ceil(temp);
+                                axisY->setRange(axisYMin, axisYMax);
+                        } else if (floor(temp) < axisYMin) {
+                                axisYMin = floor(temp);
+                                axisY->setRange(axisYMin, axisYMax);
                         }
                 }
 

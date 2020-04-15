@@ -3,6 +3,30 @@
 
 #include "zmq_connection.h"
 
+/************************** Private functions **************************/
+static float my_strtof(char *nptr) {
+        float f = 0.0;
+        while ((*nptr >= '0') && (*nptr <= '9')) {
+                f = (f * 10.0) + (*nptr++ - '0');
+        }
+
+        if (*nptr == '.') {
+                float cv = 1.0;
+                nptr++;
+                while ((*nptr >= '0') && (*nptr <= '9')) {
+                        cv *= 0.1;
+                        f = f + (cv*(*nptr++ - '0'));
+                }
+        }
+
+        return f;
+}
+
+/************************** Public functions **************************/
+
+/* Initialize ZMQ REQ socket on the given ip and port
+ * Returns 0 on success, -1 on failure
+ */
 int init_req_sock(void **zctx, void **zsock, const char *ip, int port)
 {
         int ret = 0;
@@ -35,6 +59,10 @@ int init_req_sock(void **zctx, void **zsock, const char *ip, int port)
         return 0;
 }
 
+
+/* Close a socket
+ * Returns 0 on success, -1 on failure
+ */
 int close_sock(void *zsock)
 {
         int ret = 0;
@@ -47,6 +75,10 @@ int close_sock(void *zsock)
         return ret;
 }
 
+
+/* Request the temperature via the presented REQ socket and saves it to temp
+ * Returns 0 on success, -1 on failure
+ */
 int request_temp(void *zsock, float *temp)
 {
         int ret = 0;
@@ -66,8 +98,9 @@ int request_temp(void *zsock, float *temp)
                 perror("zmq_recv");
                 return -1;
         }
+        rx_buffer[ret] = '\0';
 
-        *temp = strtof(rx_buffer, NULL);
+        *temp = my_strtof(rx_buffer);
 
         return 0;
 }
