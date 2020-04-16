@@ -29,14 +29,12 @@ int bmp280_configure(struct bmp280_dev *bmp, struct bmp280_config *conf)
         bmp->read = i2c_reg_read;
         bmp->write = i2c_reg_write;
 
-        printf("Running bmp280_init\n");
         rslt = bmp280_init(bmp);
         print_rslt(" bmp280_init status", rslt);
 
         /* Always read the current settings before writing, especially when
          * not all configurations are modified
          */
-        printf("Running bmp280_get_config\n");
         rslt = bmp280_get_config(conf, bmp);
         print_rslt(" bmp280_get_config status", rslt);
 
@@ -52,12 +50,10 @@ int bmp280_configure(struct bmp280_dev *bmp, struct bmp280_config *conf)
 
         /* Setting the output data rate as 1HZ(1000ms) */
         conf->odr = BMP280_ODR_1000_MS;
-        printf("Running bmp280_set_config\n");
         rslt = bmp280_set_config(conf, bmp);
         print_rslt(" bmp280_set_config status", rslt);
 
         /* Always set the power mode after setting the configuration */
-        printf("Running bmp280_set_power_mode\n");
         rslt = bmp280_set_power_mode(BMP280_NORMAL_MODE, bmp);
         print_rslt(" bmp280_set_power_mode status", rslt);
 
@@ -110,8 +106,6 @@ int main(void)
                 goto exit_main;
         }
 
-
-
         while (1) {
 
                 // Receive a request from a client
@@ -121,9 +115,6 @@ int main(void)
                         goto exit_main;
                 }
                 rx_buffer[ret] = '\0';
-
-                // Print received request
-                //printf("%s\n", rx_buffer);
 
                 // Check if the server asks for temperature
                 if (strncmp(rx_buffer, "req/temperature", ret) == 0) {
