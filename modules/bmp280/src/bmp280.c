@@ -36,6 +36,8 @@
 *
 */#include "bmp280.h"
 
+#include <stdio.h>
+
 /********************** Static function declarations ************************/
 
 /*!
@@ -758,6 +760,7 @@ static int8_t conf_sensor(uint8_t mode, const struct bmp280_config *conf, struct
                     if (mode != BMP280_SLEEP_MODE)
                     {
                         /* Write only the power mode register in a separate write */
+                        printf("conf_sensor: write power mode in separate write\n");
                         temp[0] = BMP280_SET_BITS_POS_0(temp[0], BMP280_POWER_MODE, mode);
                         rslt = bmp280_set_regs(reg_addr, temp, 1, dev);
                     }

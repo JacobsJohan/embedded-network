@@ -64,19 +64,31 @@ int8_t i2c_reg_write(uint8_t i2c_addr, uint8_t reg_addr, uint8_t *reg_data, uint
 {
         (void)i2c_addr;
         int ret = 0;
+        uint8_t write_buffer[128];
 
-        // Select slave register
-        ret = write(fd_i2c, &reg_addr, 1);
+        if (length >= 128) {
+                printf("Error, too much data to write\n");
+                return -1;
+        }
+
+        // write_buffer = reg_addr + data
+        write_buffer[0] = reg_addr;
+        for (int k = 0; k < length; k++) {
+                write_buffer[k + 1] = *reg_data;
+                reg_data++;
+        }
+
+        // send data
+        ret = write(fd_i2c, write_buffer, length + 1);
         if (ret < 0) {
                 perror("write");
                 return -1;
         }
 
-        // send data
-        ret = write(fd_i2c, reg_data, length);
-        if (ret < 0) {
-                perror("write");
-                return -1;
+        // Debugging
+        printf("WRITE\n");
+        for (int k = 0; k < length + 1; k++) {
+                printf("Writing data: 0x%x\n", write_buffer[k]);
         }
 
         return 0;
@@ -87,6 +99,9 @@ int8_t i2c_reg_read(uint8_t i2c_addr, uint8_t reg_addr, uint8_t *reg_data, uint1
 {
         (void)i2c_addr;
         int ret = 0;
+
+        printf("READ\n");
+        printf("Writing register: 0x%x\n", reg_addr);
 
         // Select slave register
         ret = write(fd_i2c, &reg_addr, 1);
@@ -100,6 +115,10 @@ int8_t i2c_reg_read(uint8_t i2c_addr, uint8_t reg_addr, uint8_t *reg_data, uint1
         if (ret < 0) {
                 perror("read");
                 return -1;
+        }
+        for (int k = 0; k < length; k++) {
+                printf("Reading data: 0x%x\n", *reg_data);
+                reg_data++;
         }
 
         return 0;
