@@ -64,16 +64,22 @@ int8_t i2c_reg_write(uint8_t i2c_addr, uint8_t reg_addr, uint8_t *reg_data, uint
 {
         (void)i2c_addr;
         int ret = 0;
+        uint8_t write_buffer[128];
 
-        // Select slave register
-        ret = write(fd_i2c, &reg_addr, 1);
-        if (ret < 0) {
-                perror("write");
+        if (length >= 128) {
+                printf("Error, too much data to write\n");
                 return -1;
         }
 
-        // send data
-        ret = write(fd_i2c, reg_data, length);
+        // write_buffer = reg_addr + data
+        write_buffer[0] = reg_addr;
+        for (int k = 0; k < length; k++) {
+                write_buffer[k + 1] = *reg_data;
+                reg_data++;
+        }
+
+        // Send data
+        ret = write(fd_i2c, write_buffer, length + 1);
         if (ret < 0) {
                 perror("write");
                 return -1;

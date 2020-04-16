@@ -46,7 +46,7 @@ int bmp280_configure(struct bmp280_dev *bmp, struct bmp280_config *conf)
         conf->os_temp = BMP280_OS_4X;
 
         /* Pressure over sampling none (disabling pressure measurement) */
-        conf->os_pres = BMP280_OS_NONE;
+        conf->os_pres = BMP280_OS_4X;
 
         /* Setting the output data rate as 1HZ(1000ms) */
         conf->odr = BMP280_ODR_1000_MS;
@@ -106,8 +106,6 @@ int main(void)
                 goto exit_main;
         }
 
-
-
         while (1) {
 
                 // Receive a request from a client
@@ -117,9 +115,6 @@ int main(void)
                         goto exit_main;
                 }
                 rx_buffer[ret] = '\0';
-
-                // Print received request
-                //printf("%s\n", rx_buffer);
 
                 // Check if the server asks for temperature
                 if (strncmp(rx_buffer, "req/temperature", ret) == 0) {
