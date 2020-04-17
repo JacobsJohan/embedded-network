@@ -19,6 +19,8 @@ will be displayed graphically using a Qt C++ application.
 * 2020-04-13: Test I2C on the RPI4
 * 2020-04-14: Use Bosch BMP280 API to read out temperature.
 * 2020-04-15: Cross-compile libzmq for linux-arm-gnueabihf
+* 2020-04-16: Setup communication chain with static IPs disconnected a router. Fix I2C bug
+* 2020-04-17: Port Raspberry Pi application to Buildroot. Use pressure data from sensor. Look into connecting buzzer.
 
 ## Configuring I2C on the RPI4
 * Toggle *dtparam=i2c_arm=on* in ```/boot/config```. This can also be changed with **raspi-config**.
@@ -31,7 +33,7 @@ is for example used to control the volume of an audio device, for the configurat
 device registers.
 
 
-## Cross-compiling instructions
+## Cross-compiling instructions (ZMQ)
 ```
 git clone https://github.com/zeromq/libzmq
 cd libzmq

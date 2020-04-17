@@ -30,7 +30,37 @@ br-clean:
 		make clean > /dev/null'
 
 
+# Configure the linux kernel for buildroot
+.PHONY: br-linuxconfig
+br-linuxconfig: br-setup
+	$(info Configuring buildroot linux kernel...)
+	$(BRDOCK) 'source setup-build.sh -e $$PWD/buildroot -d /v/$(BRBUILDDIR) $(BRDEFCONFIG) && \
+		make linux-menuconfig && make linux-update-defconfig'
+
+
+# Reconfigure the linux kernel after changes were made
+.PHONY: br-reconfigure
+br-reconfigure: br-setup
+	$(info Reconfiguring buildroot linux kernel...)
+	$(BRDOCK) 'source setup-build.sh -e $$PWD/buildroot -d /v/$(BRBUILDDIR) $(BRDEFCONFIG) && \
+		make linux-reconfigure'
+
+
+# Rebuild a specific package
+.PHONY: br-package
+br-package: br-setup
+	$(info Rebuilding a specific package...)
+	$(BRDOCK) 'source setup-build.sh -e $$PWD/buildroot -d /v/$(BRBUILDDIR) $(BRDEFCONFIG) && \
+		make rpi-firmware-rebuild'
+
+
 # Create the dowload and cache directories on the host if they do not exist yet
 .PHONY: br-setup
 br-setup:
 	@mkdir -p $(BRCACHEDIR) $(BRDLDIR) $(BRBUILDDIR)
+
+
+# dd to sdcard
+.PHONY: br-sdcard
+br-sdcard:
+	dd if=build/buildroot/images/sdcard.img of=/dev/mmcblk0 bs=4M

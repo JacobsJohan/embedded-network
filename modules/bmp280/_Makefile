@@ -1,12 +1,13 @@
 SRC_LIST = bmp280.c i2c_drv.c server.c
 SRC_DIR  = src/
 SRC      = $(addprefix $(SRC_DIR), $(SRC_LIST))
-TARGET = get_temp
+TARGET = server
 CC = arm-linux-gnueabihf-gcc
 CFLAGS += -Wall -Werror -Wextra
 LDFLAGS += -Iinc
 
 SRC += lib/libzmq.so.5.2.3
+#LDFLAGS += -lzmq
 
 .PHONY: all
 all:

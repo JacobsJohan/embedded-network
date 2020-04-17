@@ -1,0 +1,9 @@
+config BR2_PACKAGE_BMP280_SERVER
+    bool "bmp280-server"
+
+    select BR2_PACKAGE_CZMQ
+    help
+        This package contains an application to read out temperature data
+        from a BMP280 sensor over I2C and transmit it to a host computer
+        over Ethernet.
+
