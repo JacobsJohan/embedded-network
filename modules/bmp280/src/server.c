@@ -1,16 +1,159 @@
-#include "stdio.h"
-#include "string.h"
-#include "time.h"
-#include "unistd.h"
-#include "zmq.h"
+#include <pthread.h>
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+#include <zmq.h>
 
 #include "bmp280.h"
+#include "gpio_drv.h"
 #include "i2c_drv.h"
 
 static const char i2c_bus[]  = "/dev/i2c-1";
+static int running = 0;
 
 void delay_ms(uint32_t period_ms);
 void print_rslt(const char api_name[], int8_t rslt);
+void* ring_buzzer(void *buzzer_pin);
+int bmp280_configure(struct bmp280_dev *bmp, struct bmp280_config *conf);
+
+
+int main(void)
+{
+        int ret = 0;
+        struct bmp280_dev bmp;
+        struct bmp280_config conf;
+        struct bmp280_uncomp_data ucomp_data;
+        double temp;
+
+        const int buffer_len = 128;
+        void *zctx = NULL;
+        void *zsock = NULL;
+        char rx_buffer[buffer_len];
+        char tx_buffer[buffer_len];
+        const char *ip_addr = "tcp://0.0.0.0:5555";
+
+        char buzzer_pin[] = "24";
+        char buzzer_dir[] = "out";
+        double buzzer_thresh = 27.0;
+        pthread_t buzzer_t;
+
+        /* Initialize i2c */
+        ret = i2c_init(i2c_bus, BMP280_I2C_ADDR_SEC);
+        if (ret < 0) {
+                printf("i2c_init failed\n");
+                i2c_deinit();
+                return -1;
+        }
+
+        /* Set desired sensor configurations */
+        ret = bmp280_configure(&bmp, &conf);
+
+        /* Setup ZMQ socket */
+        zctx = zmq_ctx_new();
+        if (zctx == NULL) {
+                perror("zmq_ctx_new");
+                goto exit_main;
+        }
+
+        zsock = zmq_socket(zctx, ZMQ_REP);
+        if (zsock == NULL) {
+                perror("zmq_ctx_new");
+                ret = -1;
+                goto exit_main;
+        }
+
+        ret = zmq_bind(zsock, ip_addr);
+        if (ret < 0) {
+                perror("zmq_bind");
+                goto exit_main;
+        }
+
+        /* Setup buzzer GPIO */
+        gpio_init(buzzer_pin, buzzer_dir);
+
+        while (1) {
+
+                // Receive a request from a client
+                ret = zmq_recv(zsock, rx_buffer, buffer_len - 1, 0);
+                if (ret < 0) {
+                        perror("zmq_recv");
+                        goto exit_main;
+                }
+                rx_buffer[ret] = '\0';
+
+                // Check if the server asks for temperature
+                if (strncmp(rx_buffer, "req/temperature", ret) == 0) {
+
+                        /* Reading the raw data from sensor */
+                        ret = bmp280_get_uncomp_data(&ucomp_data, &bmp);
+                        if (ret < 0) {
+                                printf("Error bmp280_get_uncomp_data");
+                                goto exit_main;
+                        }
+
+                        /* Getting the compensated temperature as floating point value */
+                        ret = bmp280_get_comp_temp_double(&temp, ucomp_data.uncomp_temp, &bmp);
+                        if (ret < 0) {
+                                printf("Error bmp280_get_uncomp_data");
+                                goto exit_main;
+                        }
+                        printf("T: %.2f\n", temp);
+                        if (temp > buzzer_thresh && running == 0) {
+                                running = 1;
+                                pthread_create(&buzzer_t, NULL, &ring_buzzer, (void *) buzzer_pin);
+                        }
+
+                        snprintf(tx_buffer, buffer_len, "%.2f", temp);
+
+                } else {
+                        memcpy(tx_buffer, "Unknown request", 16);
+                }
+
+                // Send reply
+                ret = zmq_send(zsock, tx_buffer, strlen(tx_buffer), 0);
+                if (ret < 0) {
+                        perror("zmq_send");
+                        goto exit_main;
+                }
+
+                // Clear tx_buffer
+                memset(tx_buffer, 0, sizeof(tx_buffer));
+        }
+
+exit_main:
+        /* De-initialize buzzer gpio */
+        ret = gpio_deinit(buzzer_pin);
+        if (ret < 0) {
+                printf("Error gpio_deinit()\n");
+        }
+
+        /* De-initialize i2c */
+        ret = i2c_deinit();
+        if (ret < 0) {
+                printf("Error i2c_deinit()\n");
+        }
+
+        /* Close socket */
+        ret = zmq_close(zsock);
+        if (ret < 0) {
+                perror("zmq_close");
+        }
+
+        return ret;
+}
+
+
+void* ring_buzzer(void *buzzer_pin)
+{
+        gpio_pin_set((char *) buzzer_pin, "1");
+        usleep(500000);
+        gpio_pin_set((char *) buzzer_pin, "0");
+        running = 0;
+
+        return NULL;
+}
+
 
 int bmp280_configure(struct bmp280_dev *bmp, struct bmp280_config *conf)
 {
@@ -46,7 +189,7 @@ int bmp280_configure(struct bmp280_dev *bmp, struct bmp280_config *conf)
         conf->os_temp = BMP280_OS_4X;
 
         /* Pressure over sampling none (disabling pressure measurement) */
-        conf->os_pres = BMP280_OS_4X;
+        conf->os_pres = BMP280_OS_NONE;
 
         /* Setting the output data rate as 1HZ(1000ms) */
         conf->odr = BMP280_ODR_1000_MS;
@@ -60,112 +203,6 @@ int bmp280_configure(struct bmp280_dev *bmp, struct bmp280_config *conf)
         return 0;
 }
 
-int main(void)
-{
-        int ret = 0;
-        struct bmp280_dev bmp;
-        struct bmp280_config conf;
-        struct bmp280_uncomp_data ucomp_data;
-        double temp;
-
-        const int buffer_len = 128;
-        void *zctx = NULL;
-        void *zsock = NULL;
-        char rx_buffer[buffer_len];
-        char tx_buffer[buffer_len];
-        const char *ip_addr = "tcp://0.0.0.0:5555";
-
-        /* Initialize i2c */
-        ret = i2c_init(i2c_bus, BMP280_I2C_ADDR_SEC);
-        if (ret < 0) {
-                printf("i2c_init failed\n");
-                i2c_deinit();
-                return -1;
-        }
-
-        /* Set desired sensor configurations */
-        ret = bmp280_configure(&bmp, &conf);
-
-        /* Setup ZMQ socket */
-        zctx = zmq_ctx_new();
-        if (zctx == NULL) {
-                perror("zmq_ctx_new");
-                goto exit_main;
-        }
-
-        zsock = zmq_socket(zctx, ZMQ_REP);
-        if (zsock == NULL) {
-                perror("zmq_ctx_new");
-                ret = -1;
-                goto exit_main;
-        }
-
-        ret = zmq_bind(zsock, ip_addr);
-        if (ret < 0) {
-                perror("zmq_bind");
-                goto exit_main;
-        }
-
-        while (1) {
-
-                // Receive a request from a client
-                ret = zmq_recv(zsock, rx_buffer, buffer_len - 1, 0);
-                if (ret < 0) {
-                        perror("zmq_recv");
-                        goto exit_main;
-                }
-                rx_buffer[ret] = '\0';
-
-                // Check if the server asks for temperature
-                if (strncmp(rx_buffer, "req/temperature", ret) == 0) {
-
-                        /* Reading the raw data from sensor */
-                        ret = bmp280_get_uncomp_data(&ucomp_data, &bmp);
-                        if (ret < 0) {
-                                printf("Error bmp280_get_uncomp_data");
-                                goto exit_main;
-                        }
-
-                        /* Getting the compensated temperature as floating point value */
-                        ret = bmp280_get_comp_temp_double(&temp, ucomp_data.uncomp_temp, &bmp);
-                        if (ret < 0) {
-                                printf("Error bmp280_get_uncomp_data");
-                                goto exit_main;
-                        }
-                        printf("T: %.2f\n", temp);
-
-                        snprintf(tx_buffer, buffer_len, "%.2f", temp);
-
-                } else {
-                        memcpy(tx_buffer, "Unknown request", 16);
-                }
-
-                // Send reply
-                ret = zmq_send(zsock, tx_buffer, strlen(tx_buffer), 0);
-                if (ret < 0) {
-                        perror("zmq_send");
-                        goto exit_main;
-                }
-
-                // Clear tx_buffer
-                memset(tx_buffer, 0, sizeof(tx_buffer));
-        }
-
-exit_main:
-        /* De-initialize i2c */
-        ret = i2c_deinit();
-        if (ret < 0) {
-                printf("Error i2c_deinit()\n");
-        }
-
-        /* Close socket */
-        ret = zmq_close(zsock);
-        if (ret < 0) {
-                perror("zmq_close");
-        }
-
-        return ret;
-}
 
 /*!
  *  @brief Function that creates a mandatory delay required in some of the APIs such as "bmg250_soft_reset",
@@ -194,6 +231,7 @@ void delay_ms(uint32_t period_ms)
                 perror("nanosleep");
         }
 }
+
 
 /*!
  *  @brief Prints the execution status of the APIs.

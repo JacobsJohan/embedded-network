@@ -1,2 +1,11 @@
 compile_commands.json
-bmp280_server
+bmp280-server
+Makefile.in
+aclocal.m4
+ar-lib
+autom4te.cache/
+compile
+configure
+depcomp
+install-sh
+missing

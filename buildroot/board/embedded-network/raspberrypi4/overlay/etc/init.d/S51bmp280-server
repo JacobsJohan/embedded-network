@@ -1,0 +1,2 @@
+#!/bin/sh
+bmp280-server
