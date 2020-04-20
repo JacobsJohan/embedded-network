@@ -25,13 +25,13 @@ GraphWidget::GraphWidget(QWidget *parent) :
         axisYMax = 26;
 
         // Create a series of random data points
-        series_random = new QtCharts::QLineSeries();
+        series_temp = new QtCharts::QLineSeries();
 
         // Create QChart instance with a few options
         chart = new QtCharts::QChart;
         chart->legend()->hide();
-        chart->addSeries(series_random);
-        chart->setTitle("Random data chart");
+        chart->addSeries(series_temp);
+        chart->setTitle("Temperature data chart");
 
         // Limit x and y range based on initial values
         axisX = new QtCharts::QValueAxis;
@@ -39,13 +39,13 @@ GraphWidget::GraphWidget(QWidget *parent) :
         axisX->setTickCount(7);
         axisX->setLabelFormat("%d");
         axisX->setReverse(true);
-        chart->setAxisX(axisX, series_random);
+        chart->setAxisX(axisX, series_temp);
 
         axisY = new QtCharts::QValueAxis;
         axisY->setRange(axisYMin, axisYMax);
         axisY->setTickCount(4);
         axisY->setLabelFormat("%d");
-        chart->setAxisY(axisY, series_random);
+        chart->setAxisY(axisY, series_temp);
 
         // Create ChartView such that we don't need a QGraphicsView scene
         chartView = new QtCharts::QChartView(chart);
@@ -55,7 +55,7 @@ GraphWidget::GraphWidget(QWidget *parent) :
 // Destructor
 GraphWidget::~GraphWidget()
 {
-        delete series_random;
+        delete series_temp;
         delete chart;
         delete axisX;
         delete axisY;
@@ -75,14 +75,15 @@ int GraphWidget::addPointPeriodic(const int time_ms, std::atomic<GraphState>& st
         void *zctx = NULL;
         void *zsock = NULL;
 
+        // Open client side socket
+        ret = init_req_sock(&zctx, &zsock, ip.c_str(), port);
+        if (ret < 0) {
+                std::cout << "Error initializing request socket" << std::endl;
+                return -1;
+        }
+
         // Check if we are shutting down
         while (state != GraphState::terminating) {
-                // Open client side socket
-                ret = init_req_sock(&zctx, &zsock, ip.c_str(), port);
-                if (ret < 0) {
-                        std::cout << "Error initializing request socket" << std::endl;
-                        return -1;
-                }
 
                 // Check if we are idle/running
                 if (state == GraphState::running) {
@@ -94,16 +95,16 @@ int GraphWidget::addPointPeriodic(const int time_ms, std::atomic<GraphState>& st
 
                         // Print temperature
                         std::cout << "T: " << temp << " C" << std::endl;
-                        data_len = series_random->count();
-                        series_random->append(data_len, temp);
+                        data_len = series_temp->count();
+                        series_temp->append(data_len, temp);
 
                         if (data_len > axisXMax) {
                                 // Delete first point
-                                series_random->remove(0);
+                                series_temp->remove(0);
 
                                 // Shift x-values of all other points
                                 for (int k = 0; k < data_len; k++) {
-                                        series_random->replace(k, k, series_random->at(k).y());
+                                        series_temp->replace(k, k, series_temp->at(k).y());
                                 }
                         }
 

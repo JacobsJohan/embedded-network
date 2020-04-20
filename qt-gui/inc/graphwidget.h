@@ -32,7 +32,7 @@ public slots:
         void toggleGraphState(void);
 
 private:
-        QtCharts::QLineSeries *series_random;
+        QtCharts::QLineSeries *series_temp;
         QtCharts::QChart *chart;
         QtCharts::QValueAxis *axisX;
         QtCharts::QValueAxis *axisY;
