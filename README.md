@@ -10,7 +10,7 @@ will be displayed graphically using a Qt C++ application.
 * Can communicate between laptop and Pi using ZMQ.
 * The hardware (temperature sensor, buzzer, jumper cables, breadboards) has been ordered.
 
-## Goal for today
+## Schedule
 * 2020-04-08: Create a Qt C++ GUI application: done
 * 2020-04-09: Update graph axes on new data point. Send data from Pi to laptop and display on graph.
 * 2020-04-10: Integrate ZMQ REQ/REP into main C++ program. Hope that hardware arrives.
@@ -23,7 +23,7 @@ will be displayed graphically using a Qt C++ application.
 * 2020-04-17: Port Raspberry Pi application to Buildroot. Use pressure data from sensor. Look into connecting buzzer.
 
 ## Configuring I2C on the RPI4
-* Toggle *dtparam=i2c_arm=on* in ```/boot/config```. This can also be changed with **raspi-config**.
+* Toggle *dtparam=i2c_arm=on* in ```/boot/config```. This can also be changed with **raspi-config**. Note that this value needs to be *dtparam=i2c1=on* in ```buildroot/package/rpi-firmware/config.txt```
 
 ## ioctl() explained
 [Detailed information](https://sysplay.github.io/books/LinuxDrivers/book/Content/Part09.html)
