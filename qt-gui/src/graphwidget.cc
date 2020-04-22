@@ -24,7 +24,7 @@ GraphWidget::GraphWidget(QWidget *parent) :
         axisYMin = 24;
         axisYMax = 26;
 
-        // Create a series of random data points
+        // Create a series of temperature data points
         series_temp = new QtCharts::QLineSeries();
 
         // Create QChart instance with a few options
